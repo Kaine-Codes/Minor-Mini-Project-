@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Login from './components/Login'
 import LiveReadings from './components/LiveReadings'
 import HistoryChart from './components/HistoryChart'
@@ -6,10 +6,35 @@ import Controls from './components/Controls'
 import FloorPlan from './components/FloorPlan'
 import ConnectionStatus from './components/ConnectionStatus'
 import GasDangerBanner from './components/GasDangerBanner'
+import ThresholdSettings from './components/ThresholdSettings'
 import { getStatus, getLatest, getHistory, getCommands, sendCommand, logout } from './api'
 import { syncClock } from './utils/timeSync'
 
 const POLL_MS = 4000
+
+const DEFAULT_THRESHOLDS = {
+  temperature: 40,
+  gas: 1800,
+  light: 3000,
+  vibration: 1,  // 1 = any vibration triggers alert
+}
+
+function loadThresholds() {
+  try {
+    const saved = localStorage.getItem('aria-thresholds')
+    return saved ? { ...DEFAULT_THRESHOLDS, ...JSON.parse(saved) } : DEFAULT_THRESHOLDS
+  } catch {
+    return DEFAULT_THRESHOLDS
+  }
+}
+
+function loadTheme() {
+  try {
+    return localStorage.getItem('aria-theme') || 'dark'
+  } catch {
+    return 'dark'
+  }
+}
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(null) // null = checking
@@ -18,9 +43,22 @@ export default function App() {
   const [led, setLed] = useState(false)
   const [fan, setFan] = useState(false)
   const [sending, setSending] = useState(false)
+  const [theme, setTheme] = useState(loadTheme)
+  const [thresholds, setThresholds] = useState(loadThresholds)
 
-  // One-time internet time check, used only to correct the ESP32
-  // connected/disconnected freshness check -- see utils/timeSync.js
+  // Apply theme to document
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('aria-theme', theme)
+  }, [theme])
+
+  // Save thresholds
+  const updateThresholds = useCallback((newThresholds) => {
+    setThresholds(newThresholds)
+    localStorage.setItem('aria-thresholds', JSON.stringify(newThresholds))
+  }, [])
+
+  // One-time internet time check
   useEffect(() => {
     syncClock()
   }, [])
@@ -35,10 +73,6 @@ export default function App() {
     if (!loggedIn) return
 
     const fetchData = () => {
-      // Each call re-fetches the current sliding window from the backend
-      // (last 200 rows, most recent first) -- there's no separate
-      // "trim the oldest point" step needed on the frontend, the backend
-      // query already only ever returns the newest N readings.
       getLatest().then(setReading).catch(() => {})
       getHistory(200).then(setHistory).catch(() => {})
       getCommands()
@@ -76,18 +110,19 @@ export default function App() {
     }
   }
 
+  function toggleTheme() {
+    setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
+  }
+
   if (loggedIn === null) {
     return <div className="loading-screen">Loading...</div>
   }
 
   if (!loggedIn) {
-    return <Login onLoggedIn={() => setLoggedIn(true)} />
+    return <Login onLoggedIn={() => setLoggedIn(true)} theme={theme} onToggleTheme={toggleTheme} />
   }
 
   const gasOverrideActive = reading?.local_gas_override === 1
-  // While the override is active the ESP32 forces the fan on locally,
-  // ignoring dashboard commands -- reflect that in the UI regardless of
-  // what was last commanded.
   const fanDisplayState = fan || gasOverrideActive
 
   return (
@@ -96,6 +131,14 @@ export default function App() {
         <h1>ARIA Dashboard</h1>
         <div className="header-right">
           <ConnectionStatus reading={reading} />
+          <button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
           <button
             className="logout-btn"
             onClick={() => logout().then(() => setLoggedIn(false))}
@@ -110,7 +153,7 @@ export default function App() {
       <div className="main-grid">
         <FloorPlan reading={reading} led={led} fan={fanDisplayState} />
         <div className="side-panel">
-          <LiveReadings reading={reading} />
+          <LiveReadings reading={reading} thresholds={thresholds} />
           <Controls
             led={led}
             fan={fanDisplayState}
@@ -119,10 +162,15 @@ export default function App() {
             sending={sending}
             gasOverrideActive={gasOverrideActive}
           />
+          <ThresholdSettings
+            thresholds={thresholds}
+            onUpdate={updateThresholds}
+            reading={reading}
+          />
         </div>
       </div>
 
-      <HistoryChart history={history} />
+      <HistoryChart history={history} theme={theme} thresholds={thresholds} />
     </div>
   )
 }

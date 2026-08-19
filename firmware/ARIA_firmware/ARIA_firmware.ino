@@ -19,7 +19,7 @@
  */
 
 #include <WiFi.h>
-#include <WiFiManager.h>
+// #include <WiFiManager.h>  // not needed — using hardcoded hotspot credentials
 #include <ESPmDNS.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
@@ -38,10 +38,11 @@
 #define MOTOR_ENA     32     // L298N ENA (PWM speed, tie HIGH or PWM)
 
 // ---------------- CONFIG ----------------
-// mDNS auto-discovery: the ESP32 finds the backend at "aria.local"
-// If your router blocks mDNS, uncomment the hardcoded IP line instead:
-// const char* SERVER_HOSTNAME = "192.168.1.60";  // your laptop's current Wi-Fi IP (may change)
-const char* SERVER_HOSTNAME   = "aria.local";
+// LAPTOP HOTSPOT MODE: The ESP32 connects directly to the laptop's
+// Windows Mobile Hotspot. The gateway IP is always 192.168.137.1.
+const char* WIFI_SSID         = "THESHINEMACHINE 3140";
+const char* WIFI_PASSWORD     = "1P3697{q";
+const char* SERVER_HOSTNAME   = "192.168.137.1";
 const int   SERVER_PORT       = 5000;
 const unsigned long POST_INTERVAL_MS   = 5000;   // send readings every 5s
 const unsigned long COMMAND_POLL_MS    = 3000;   // check for overrides every 3s
@@ -74,19 +75,24 @@ void setup() {
 
   dht.begin();
 
-  // ---- WiFi setup via captive portal ----
-  // On first boot (or if saved WiFi fails), ESP32 hosts its own AP called
-  // "ARIA-Setup". Connect to it from a phone, a captive portal page pops up
-  // automatically -- enter your home WiFi name + password there.
-  WiFiManager wm;
-  wm.setConfigPortalTimeout(180); // 3 min timeout, then retries/reboots
-  bool connected = wm.autoConnect("ARIA-Setup");
+  // ---- Connect to laptop's Mobile Hotspot ----
+  Serial.print("Connecting to ");
+  Serial.println(WIFI_SSID);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
-  if (!connected) {
-    Serial.println("Failed to connect to WiFi, restarting...");
+  int retries = 0;
+  while (WiFi.status() != WL_CONNECTED && retries < 40) {
+    delay(500);
+    Serial.print(".");
+    retries++;
+  }
+
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("\nFailed to connect to WiFi, restarting...");
     delay(3000);
     ESP.restart();
   }
+  Serial.println();
 
   Serial.print("Connected to WiFi. IP: ");
   Serial.println(WiFi.localIP());

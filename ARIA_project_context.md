@@ -189,6 +189,7 @@ project's centerpiece. All components below are standard, well-documented parts.
 | LED | "Light" automation demo actuator | Straight off a GPIO pin through a current-limiting resistor — no driver circuit needed |
 | Small DC motor | "Fan" automation demo actuator | **Cannot** be driven directly from a GPIO pin (current/back-EMF) |
 | L298N motor driver module | Drives the DC motor safely from GPIO logic | Chosen over discrete transistor + flyback diode circuit for reliability and a cleaner parts list; ESP32 GPIO controls the driver's input pins |
+| SW-804 vibration sensor | Vibration detection | Added after initial hardware lock-in (see §10.3) — digital output, wired like the PIR sensor, no voltage divider needed |
 
 **Explicitly dropped from scope:**
 - **Mains-voltage relay control of real appliances** — considered too much
@@ -259,7 +260,179 @@ To stay accurate and defensible under panel questioning:
 
 ---
 
-## 10. Future Scope (Consolidated)
+## 10. Implementation Status — What Has Actually Been Built
+
+This section reflects real, working progress as of the current stage, on top of
+the design decisions in §1–9. All items below are implemented, not just planned.
+
+### 10.1 Codebase delivered
+
+A complete, working three-part codebase was generated to match the architecture
+in §8:
+
+- **`firmware/ARIA_firmware/ARIA_firmware.ino`** — ESP32 sketch implementing:
+  WiFiManager-based first-boot captive portal setup, mDNS registration,
+  sensor reads for DHT22 / MQ-135 / PIR / LDR / SW-804, edge-first gas-safety
+  override logic (fan triggers locally, independent of the backend), periodic
+  `POST` of readings to the backend, and periodic polling of `/api/commands`
+  for manual/remote LED and fan overrides.
+- **`backend/app.py` + `backend/database.py`** — Flask REST API backed by
+  SQLite: session-based login, endpoints for posting/reading sensor data,
+  endpoints for reading/setting actuator commands, a background
+  APScheduler job that deletes readings older than `RETENTION_DAYS` (see §6),
+  and mDNS self-registration as `aria.local` via the `zeroconf` package.
+- **`frontend/`** — React (Vite) dashboard: login screen, live-readings grid,
+  manual LED/fan controls, and a Chart.js history view, talking to the backend
+  over a small `api.js` fetch wrapper.
+
+### 10.2 Simplified single-server deployment model
+
+The original design assumed two running processes (Flask API + a separate
+Vite dev server for the dashboard). This was simplified for ease of setup:
+
+- The frontend is now **built once** (`npm run build`), producing static files
+  in `frontend/dist`.
+- Flask (`app.py`) serves those static files directly, with a catch-all route
+  that returns `index.html` for any non-API path (so client-side routing and
+  a browser refresh both work correctly).
+- Net effect: the whole system now runs as **one process, one port**
+  (`python app.py`, dashboard at `http://localhost:5000`) instead of two
+  processes on two ports. This was done specifically to reduce setup
+  complexity for a team newer to running this kind of stack, without changing
+  the underlying architecture — the two-process/dev-server workflow is kept
+  as a documented fallback (`frontend/.env.example`) for active frontend
+  development.
+
+### 10.3 Vibration sensing added
+
+An **SW-804 vibration sensor** was added to the hardware and software stack
+after the initial design was locked in:
+
+- Wired to **GPIO 13** on the ESP32 (digital input, same wiring pattern as the
+  PIR sensor — no voltage divider needed).
+- Added to the firmware (`vibration` reading, included in the JSON payload
+  posted to the backend).
+- Added to the database schema (`readings.vibration` column) and to
+  `insert_reading()`.
+- Displayed on the dashboard's live-readings grid alongside the other sensors.
+
+### 10.4 Real bugs found and fixed during setup
+
+These were genuine issues hit while actually running the system for the first
+time on the team's Windows machine — documented here since they're the kind of
+thing likely to resurface (e.g. if the code is redeployed on a new machine) and
+are useful to know about rather than relearn:
+
+- **Frontend routing 404 on Windows.** The Flask `static_folder` path was
+  originally built from a plain `os.path.dirname(__file__)`. On Windows, when
+  a script is launched as `python app.py` directly, `__file__` is not always
+  guaranteed to be an absolute path, which could throw off the relative path
+  built from it. Fixed by wrapping it in `os.path.abspath(...)`, which
+  resolves the ambiguity regardless of how the script is invoked.
+- **Server appearing to "do nothing" (exit code 0, no output, no error).**
+  Root cause turned out to be a copy-paste of `app.py` that silently dropped
+  the last ~30 lines of the file — including the entire
+  `if __name__ == "__main__":` block. With that block missing, Python simply
+  defines all the routes/functions and exits cleanly at end-of-file, with no
+  error and no server ever starting. This was diagnosed by adding explicit
+  `print()` checkpoints through the startup sequence and by directly
+  inspecting the file's tail — a useful diagnostic pattern if a similar
+  "silently does nothing" symptom shows up again.
+- **Dashboard showing the wrong (browser-local) time for readings.** The
+  backend was storing timestamps as `datetime.utcnow().isoformat()` — UTC time,
+  but without any marker saying so. Browsers interpret an unmarked ISO
+  timestamp as already being in the *local* timezone, so the dashboard's
+  `toLocaleTimeString()` conversion was silently wrong. Fixed by appending
+  `"Z"` to every stored timestamp (`datetime.utcnow().isoformat() + "Z"`),
+  which explicitly marks it as UTC — the browser then correctly converts it to
+  the viewer's local time with no frontend code changes needed.
+
+### 10.5 Two versions of the backend now exist, deliberately
+
+For presentation purposes, the team wanted to be able to show an earlier,
+simpler milestone ("V1") distinct from the current fully-integrated system,
+without misrepresenting the current state of the project as less complete than
+it actually is. Two real files now exist:
+
+- **`app.py` (current)** — the single-server version described in §10.2:
+  Flask serves the built dashboard directly at `http://localhost:5000`.
+- **`app_v1.py`** — the original, pre-simplification version: a pure JSON API
+  with no UI-serving code at all. To see a working dashboard against this
+  version, the React dev server must be run separately (`npm run dev` in
+  `frontend/`, with `VITE_API_BASE=http://localhost:5000` set in a `.env`
+  file), and the dashboard is then reached at `http://localhost:5173`
+  instead of `5000`. This is a genuine, functioning earlier state of the
+  project, not a fabricated one — useful for showing incremental progress
+  honestly in a presentation without altering what's currently built.
+
+### 10.6 Presentation deck produced
+
+A 12-slide progress presentation (`ARIA_progress_presentation.pptx`) was
+created covering: title, introduction, problem statement, objectives, system
+overview, system architecture (layered diagram), module design (sensing/edge
+and backend/data-flow, including the real DB schema and API endpoint list),
+UI wireframes (login + live-monitoring screens), tools & technologies,
+challenges & mitigation, and conclusion.
+
+**Framing note:** the "Challenges & Mitigation" slide presents the three real
+architectural questions the team worked through — Pi vs. ESP32 for the hub,
+secure remote access without opening ports, and edge-vs-cloud automation — each
+paired with the actual chosen solution, honestly described as the team's
+approach rather than as an unresolved problem. This was a deliberate choice:
+the team wanted to show measured, believable progress (not the fully-polished
+end state) for an early review, but without asserting that things which are
+actually working are still broken.
+
+---
+
+## 11. What's Left To Do
+
+Concrete, unfinished work — as distinct from the "Future Scope" wishlist in
+§12, which is explicitly out of scope for this project's timeline.
+
+### Hardware
+- [ ] Physical breadboard assembly of all sensors + actuators per the pin map
+      in `SETUP.md` (some components were still being sourced as of the last
+      check-in).
+- [ ] Calibrate `GAS_SAFETY_THRESHOLD` against the team's actual MQ-135 unit
+      (currently a placeholder value in the firmware) — requires taking real
+      readings in normal air vs. near a controlled gas source.
+- [ ] Confirm SW-804 sensitivity trim-pot is adjusted appropriately for the
+      demo environment (avoid false triggers from ambient vibration).
+
+### Firmware
+- [ ] End-to-end test of the WiFiManager captive-portal flow on the actual
+      board (confirmed working in principle; needs a live run-through).
+- [ ] Verify edge-first gas override actually cuts power to the fan
+      correctly through the L298N under real load, not just in code review.
+
+### Backend / Frontend
+- [ ] Full end-to-end test with live ESP32 data flowing into the dashboard
+      (has been tested with the dashboard's UI itself, but full sensor-to-chart
+      integration on real hardware is the next milestone).
+- [ ] Change `DEFAULT_PASSWORD` and `app.secret_key` away from placeholder
+      values before any real demo (currently still using development
+      placeholders on the team's working copy).
+- [ ] Decide finally whether the demo will run the single-server setup
+      (§10.2) or intentionally show the two-process V1 setup (§10.5) for the
+      presentation, and rehearse whichever is chosen so it isn't the first
+      time it's been run live.
+
+### Remote Access
+- [ ] Install and pair Tailscale on both the laptop (hub) and a phone.
+- [ ] Do a live test of dashboard control from **outside** the home network
+      (e.g. from a phone on mobile data, not the home WiFi) — this has been
+      designed and documented but not yet demonstrated end-to-end.
+
+### Documentation / Presentation
+- [ ] Finalize which milestone (V1 vs. current) is shown at the next review,
+      per the team's own pacing preference (see §10.5 framing note).
+- [ ] Prepare the full working demo (all objectives from §4) for the final
+      review, once the above items are complete.
+
+---
+
+## 12. Future Scope (Consolidated)
 
 Items intentionally deferred from the current build, to be listed as future work:
 
@@ -275,6 +448,8 @@ Items intentionally deferred from the current build, to be listed as future work
 
 ---
 
-*This document reflects team decisions as of the current planning stage and is
-intended as a working reference for report writing, slide updates, and
-anticipated panel Q&A preparation.*
+*This document reflects team decisions and progress as of the current stage and
+is intended as a working reference for report writing, slide updates, and
+anticipated panel Q&A preparation. Last major update: full codebase delivered,
+vibration sensor integrated, Windows setup issues resolved, and progress
+presentation produced.*
