@@ -1,0 +1,39 @@
+# --- Secrets -----------------------------------------------------------------
+# .env holds the dashboard password hash and session secret. Never commit it.
+.env
+.env.local
+*.env
+!.env.example
+
+# --- Python ------------------------------------------------------------------
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# --- Database ----------------------------------------------------------------
+# Sensor history is machine-local runtime state, not source.
+*.db
+*.db-wal
+*.db-shm
+
+# --- Node / frontend ---------------------------------------------------------
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# --- OS / editor -------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# --- Logs --------------------------------------------------------------------
+*.log
