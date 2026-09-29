@@ -21,14 +21,13 @@ export default function FloorPlan({ reading, led, fan }) {
         aria-label={`Room view. Light ${led ? 'on' : 'off'}, fan ${fan ? 'on' : 'off'}, ${motion ? 'motion detected' : 'no motion'}.`}
       >
         {/* room outline */}
-        <rect x="10" y="10" width="300" height="220" rx="4" className="room-wall" />
-        <rect x="150" y="230" width="20" height="0" />
+        <rect x="10" y="10" width="300" height="220" rx="6" className="room-wall" />
         {/* doorway gap */}
         <rect x="145" y="228" width="30" height="6" className="room-door" />
 
         {/* bulb, top-left corner */}
         <g className={`bulb ${led ? 'on' : ''}`} transform="translate(44, 40)">
-          <circle r="16" className="bulb-glow" />
+          <circle r="18" className="bulb-glow" />
           <circle r="10" className="bulb-body" />
           <line x1="-5" y1="9" x2="5" y2="9" className="bulb-base" />
         </g>
@@ -44,15 +43,23 @@ export default function FloorPlan({ reading, led, fan }) {
           <circle r="4" className="fan-hub" />
         </g>
 
-        {/* stick figure -- only rendered while the PIR/IR sensor sees motion */}
+        {/* Person silhouette — shown when PIR/IR sensor sees motion */}
         {motion && (
-          <g className="stick-figure" transform="translate(160, 150)">
-            <circle cx="0" cy="-24" r="8" />
-            <line x1="0" y1="-16" x2="0" y2="16" />
-            <line x1="0" y1="-6" x2="-15" y2="4" />
-            <line x1="0" y1="-6" x2="15" y2="4" />
-            <line x1="0" y1="16" x2="-11" y2="34" />
-            <line x1="0" y1="16" x2="11" y2="34" />
+          <g transform="translate(160, 140)">
+            {/* Pulsing motion ring */}
+            <circle cx="0" cy="0" r="25" className="motion-ring" />
+            <circle cx="0" cy="0" r="25" className="motion-ring" style={{ animationDelay: '0.7s' }} />
+
+            {/* Person silhouette path */}
+            <g className="person-silhouette" transform="translate(-12, -28)">
+              {/* Head */}
+              <circle cx="12" cy="6" r="6" />
+              {/* Body */}
+              <path d="M12,12 C6,14 3,20 4,30 L8,30 L10,22 L12,28 L14,22 L16,30 L20,30 C21,20 18,14 12,12Z" />
+              {/* Arms */}
+              <path d="M4,18 C2,16 0,18 1,20 L6,24" />
+              <path d="M20,18 C22,16 24,18 23,20 L18,24" />
+            </g>
           </g>
         )}
 

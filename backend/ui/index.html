@@ -1,0 +1,314 @@
+<!DOCTYPE html><html class="dark" lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>ARIA</title><link rel="stylesheet" href="app.css"><script>try{if(localStorage.getItem('aria-theme')==='light'){document.documentElement.className='light'}}catch(e){}</script></head>
+<body class="bg-background font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="lg" viewBox="0 0 48 48"><rect x="4" y="4" width="40" height="40" rx="10" fill="none" stroke="currentColor" stroke-opacity=".5"/><circle cx="24" cy="25" r="12" fill="none" stroke="currentColor" stroke-dasharray="2 3" stroke-opacity=".7"/><path d="M24 12 37 35H11Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><ellipse cx="24" cy="27" rx="4" ry="2.5" fill="currentColor"/></symbol></svg>
+<section id="login" class="hidden flex min-h-screen items-center justify-center p-margin"><main class="w-full flex items-center justify-center"><div class="flex flex-col w-full items-center justify-center relative overflow-hidden py-12 px-4 selection:bg-primary-container selection:text-on-primary-container">
+<!-- Dynamic Ambient Cockpit Background Glows -->
+<div class="absolute -top-40 -left-40 w-96 h-96 bg-primary-container/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute -bottom-48 -right-40 w-[30rem] h-[30rem] bg-secondary-container/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[42rem] h-[42rem] bg-primary-fixed-dim/5 rounded-full blur-[140px] pointer-events-none"></div>
+<!-- Subtle Radial Decorative Tech Grid Overlay (Inline lightweight SVG) -->
+<div class="absolute inset-0 opacity-15 pointer-events-none flex items-center justify-center">
+<svg class="w-full h-full stroke-primary-container/30" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="48" id="tech-grid" patternUnits="userSpaceOnUse" width="48">
+<path d="M 48 0 L 0 0 0 48" fill="none" stroke-width="0.75"></path>
+<circle class="text-primary-fixed" cx="24" cy="24" fill="currentColor" r="0.8"></circle>
+</pattern>
+</defs>
+<rect fill="url(#tech-grid)" height="100%" width="100%"></rect>
+</svg>
+</div>
+<!-- Primary Outer Wrapper Panel -->
+<div class="w-full max-w-sm relative z-10 flex flex-col items-center"><div class="w-full rounded-xl bg-surface-container/85 backdrop-blur-2xl p-8 shadow-2xl relative border border-outline-variant/30"><div class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-primary-container to-transparent rounded-t-xl"></div><div class="flex flex-col items-center text-center"><div class="relative mb-4 group cursor-pointer"><div class="absolute -inset-2 bg-primary-container/20 rounded-xl blur-lg transition duration-500 group-hover:bg-primary-container/40"></div><div class="relative w-16 h-16 rounded-lg bg-surface-container-lowest p-2 shadow-inner flex items-center justify-center"><svg class="w-full h-full text-primary-container" viewBox="0 0 48 48" aria-hidden="true"><use href="#lg"/></svg></div></div><h1 class="font-headline-lg text-headline-lg text-primary tracking-tight font-semibold">ARIA</h1><p class="font-body-sm text-body-sm text-on-surface-variant mt-1 max-w-xs">Adaptive Room Intelligence &amp; Automation</p></div><form class="space-y-4 mt-6" id="authForm"><div class="relative flex items-center"><input class="w-full px-4 py-2.5 rounded-lg bg-surface-container-highest/60 text-on-surface font-body-md focus:outline-none focus:bg-surface-container-high transition border border-outline-variant/40 placeholder:text-on-surface-variant/50" id="username" placeholder="Username" autocomplete="username" required="" type="text"></div><div class="relative flex items-center"><input class="w-full px-4 py-2.5 rounded-lg bg-surface-container-highest/60 text-on-surface font-body-md focus:outline-none focus:bg-surface-container-high transition border border-outline-variant/40 tracking-widest placeholder:text-on-surface-variant/50" id="password" autocomplete="current-password" placeholder="••••••••" required="" type="password"></div><div id="le" role="alert" class="text-error text-body-sm min-h-[1rem]"></div><button class="w-full mt-2 py-3 px-6 rounded-lg bg-[#00f0ff] hover:bg-[#4cd7f6] text-surface-container-lowest font-headline-sm font-semibold tracking-wide shadow-lg transition-all duration-300 hover:brightness-110 active:scale-[0.99] flex items-center justify-center" id="submitBtn" type="submit">Log in</button></form><div class="flex justify-center mt-6"><button id="login-theme" aria-label="Toggle light mode" class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-amber-400 hover:bg-surface-container-highest transition border border-outline-variant/30 shadow-inner" type="button"><span id="login-theme-icon" class="material-symbols-outlined text-lg leading-none">light_mode</span></button></div></div></div>
+</main></section>
+<div id="app" class="hidden pb-16 lg:pb-0"><header class="fixed top-0 left-0 right-0 z-50 bg-surface/75 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.4)]"><div class="h-16 w-full px-margin-lg flex items-center justify-between gap-gutter-lg"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm"><svg class="h-8 w-8 text-primary-container" viewBox="0 0 48 48" aria-hidden="true"><use href="#lg"/></svg><span class="font-headline-sm text-headline-sm text-primary tracking-tight whitespace-nowrap">ARIA IoT OS</span></div></div><nav id="nav-main" class="hidden lg:flex items-center gap-space-xs"><a href="#overview" data-sec="overview" class="px-space-md py-space-xs rounded-lg font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">Overview</a><a href="#sensors" data-sec="sensors" class="px-space-md py-space-xs rounded-lg font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">Sensors</a><a href="#controls" data-sec="controls" class="px-space-md py-space-xs rounded-lg font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">Controls</a><a href="#telemetry" data-sec="telemetry" class="px-space-md py-space-xs rounded-lg font-body-md text-body-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors">Telemetry</a></nav><div class="flex items-center gap-space-md"><div class="hidden md:flex items-center gap-space-xs font-telemetry-unit text-telemetry-unit text-on-surface-variant px-space-sm py-space-xs rounded-lg bg-surface-container"><span class="material-symbols-outlined text-[16px] text-primary">schedule</span><span id="clock">--:--:--</span></div><button id="theme-toggle-btn" class="flex items-center gap-space-xs px-space-sm py-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer font-label-code text-label-code" title="Toggle Theme" aria-label="Toggle Light and Dark Mode"><span id="theme-icon" class="material-symbols-outlined text-[16px] text-amber-300">dark_mode</span><span id="theme-label" class="hidden sm:inline text-on-surface">Dark</span><span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span></button><div class="flex items-center gap-space-sm pl-space-xs"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><a class="hidden sm:flex items-center gap-space-xs px-space-sm py-space-xs rounded-lg text-on-surface-variant hover:text-error hover:bg-surface-container-high transition-colors font-label-code text-label-code uppercase tracking-wider" id="logout" href="#"><span class="material-symbols-outlined text-[16px]">logout</span><span class="">Log Out</span></a></div></div></div></header><main class="w-full pt-16 bg-background min-h-screen"><div class="flex flex-col w-full">
+<div class="w-full px-margin sm:px-margin-md lg:px-margin-lg pb-space-xl flex flex-col gap-space-lg">
+<!-- Top Hardware Alert & Telemetry Status Bar -->
+
+<!-- Main Dynamic Operations Workspace (Digital Twin + Sensor Matrix) -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg w-full items-start">
+<!-- LEFT COLUMN: Digital Twin Card & Schematic (7 cols on desktop) -->
+<div class="xl:col-span-7 flex flex-col gap-space-lg">
+<!-- Interactive 2.5D Room Enclosure -->
+<div id="overview" class="scroll-mt-20 bg-surface-container/70 backdrop-blur-xl rounded-xl p-space-lg shadow-xl relative overflow-hidden flex flex-col gap-space-md">
+<div class="flex items-center justify-between border-b-0 pb-1">
+<div class="flex items-center gap-space-sm">
+<span class="w-3 h-3 rounded-full bg-primary-container shadow-[0_0_12px_#00f0ff]"></span>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface tracking-tight flex items-center gap-space-xs">
+                  Living Room Digital Twin
+                </h2>
+
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-code text-label-code inline-flex items-center gap-2 px-space-sm py-1 rounded-full bg-surface-container-high text-on-surface"><span id="live-dot" class="w-1.5 h-1.5 rounded-full bg-error"></span><span id="live-text">CONNECTING</span></span>
+</div>
+</div>
+<!-- Schematic Isometric Floorplan Sandbox -->
+<div class="relative w-full h-[400px] sm:h-[430px] rounded-xl bg-surface-container-lowest overflow-hidden flex items-center justify-center shadow-inner">
+<!-- Grid Matrix Layer -->
+<div class="absolute inset-0 bg-[radial-gradient(#31353e_1px,transparent_1px)] [background-size:20px_20px] opacity-40"></div>
+<!-- Dynamic Room Overhead Light Fixture Glow Cone -->
+<div class="absolute inset-0 transition-opacity duration-700 pointer-events-none opacity-80" id="room-lighting-aura" style="background: radial-gradient(circle at 45% 42%, rgba(251, 191, 36, 0.38) 0%, rgba(245, 158, 11, 0.15) 45%, transparent 75%);"></div>
+<div class="absolute inset-0 transition-opacity duration-700 pointer-events-none bg-surface-dim/40 opacity-0" id="room-ambient-darkness"></div>
+<!-- Architectural Blueprint Vectors Overlay -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-30 stroke-primary/30" fill="none" preserveAspectRatio="none" viewBox="0 0 700 420">
+<path d="M 80,60 L 620,60 L 620,360 L 80,360 Z" stroke-dasharray="6,4" stroke-width="2"></path>
+<path d="M 80,240 L 260,240 L 260,360" stroke-width="1.5"></path>
+<path d="M 440,60 L 440,160 L 620,160" stroke-width="1.5"></path>
+<circle cx="350" cy="210" r="140" stroke-dasharray="2,6" stroke-width="1"></circle>
+<line stroke-width="1" x1="80" x2="160" y1="60" y2="120"></line>
+<line stroke-width="1" x1="620" x2="540" y1="60" y2="120"></line>
+</svg>
+<!-- Holographic Human Avatar (Motion Detection Display) -->
+<div class="absolute left-[44%] top-[40%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none transition-all duration-500 scale-100 opacity-100" id="occupant-entity">
+<!-- Radar ripple wave pulses -->
+<div class="relative flex items-center justify-center">
+<span class="absolute w-28 h-28 rounded-full bg-primary-container/20 animate-ping duration-1000"></span>
+<span class="absolute w-20 h-20 rounded-full bg-primary/25 animate-pulse"></span>
+<div class="w-12 h-12 rounded-full bg-surface-container-high/90 shadow-[0_0_24px_#00f0ff] flex items-center justify-center text-primary relative z-10">
+<span class="material-symbols-outlined text-[28px] animate-bounce">person</span>
+</div>
+</div>
+<div class="mt-2 px-2 py-0.5 rounded bg-surface-container-highest/90 backdrop-blur-md shadow-md flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
+<span id="occ-label" class="font-label-code text-label-code text-primary uppercase whitespace-nowrap">Occupant Detected</span>
+</div>
+</div>
+<!-- Animated Ceiling Fan in Top-Right Alcove -->
+<div class="absolute right-10 top-10 flex flex-col items-center">
+<div class="relative w-20 h-20 flex items-center justify-center">
+<!-- Fan Blades SVG -->
+<div class="w-16 h-16 transition-transform duration-300 animate-[spin_0.45s_linear_infinite]" id="digital-fan-blades">
+<svg class="w-full h-full text-secondary drop-shadow-[0_0_8px_rgba(76,215,246,0.6)]" fill="currentColor" viewBox="0 0 100 100">
+<!-- Fan center hub -->
+<circle class="stroke-secondary" cx="50" cy="50" fill="#0f131c" r="14" stroke-width="3"></circle>
+<circle cx="50" cy="50" fill="#4cd7f6" r="6"></circle>
+<!-- 3 aerofoil blades -->
+<path d="M 50,36 C 45,15 32,5 50,2 C 68,5 55,15 50,36 Z" opacity="0.9"></path>
+<path d="M 62,57 C 80,68 94,76 86,90 C 72,99 68,82 62,57 Z" opacity="0.9"></path>
+<path d="M 38,57 C 20,68 6,76 14,90 C 28,99 32,82 38,57 Z" opacity="0.9"></path>
+</svg>
+</div>
+<!-- Fan state aura -->
+<div class="absolute -inset-2 rounded-full border border-dashed border-secondary/40 animate-[spin_3s_linear_infinite] pointer-events-none" id="fan-wind-aura"></div>
+</div>
+<div class="mt-1 flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container/80 text-secondary font-label-code text-label-code">
+<span class="material-symbols-outlined text-[12px]">mode_fan</span>
+<span id="fan-twin-label" class="">FAN</span>
+</div>
+</div>
+<!-- Smart Luminaire Node in Upper Ceiling Axis -->
+<div class="absolute left-1/3 top-10 flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-amber-400/90 shadow-[0_0_24px_rgba(251,191,36,0.8)] flex items-center justify-center text-on-surface" id="ceiling-lamp-node">
+<span class="material-symbols-outlined text-[18px]">lightbulb</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container/80 text-amber-300 font-label-code text-label-code" id="light-twin-tag">LIGHT</span>
+</div>
+<!-- Distributed Micro-Sensor Nodes inside Room Schematic -->
+<!-- Sensor: Vibration Node -->
+<div class="absolute bottom-14 left-16 flex items-center gap-2">
+<div class="relative flex items-center justify-center">
+<span class="absolute w-8 h-8 rounded-full bg-secondary-fixed/20 animate-ping"></span>
+<div class="w-7 h-7 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary shadow-md">
+<span class="material-symbols-outlined text-[14px]">vibration</span>
+</div>
+</div>
+<div class="hidden sm:flex flex-col"><span class="font-medium text-body-sm text-on-surface">Vibration</span></div>
+</div>
+<!-- Sensor: Gas Sniffer Node -->
+<div class="absolute bottom-16 right-20 flex items-center gap-2">
+<div class="relative flex items-center justify-center">
+<span class="absolute w-8 h-8 rounded-full bg-tertiary-fixed-dim/20 animate-pulse"></span>
+<div class="w-7 h-7 rounded-lg bg-surface-container-high flex items-center justify-center text-tertiary-fixed-dim shadow-md">
+<span class="material-symbols-outlined text-[14px]">air</span>
+</div>
+</div>
+<div class="hidden sm:flex flex-col"><span class="font-medium text-body-sm text-on-surface">Air Quality</span></div>
+</div>
+<!-- Sensor: Humidity Mist Probe -->
+<div class="absolute top-1/2 left-10 flex items-center gap-2">
+<div class="w-7 h-7 rounded-lg bg-surface-container-high flex items-center justify-center text-primary shadow-md">
+<span class="material-symbols-outlined text-[14px]">humidity_mid</span>
+</div>
+<span id="twin-hum" class="hidden sm:inline font-label-code text-label-code text-primary">-- % RH</span>
+</div>
+<!-- Reference Hardware Anchor Badge (Visual Proof of Original Hardware) -->
+
+</div>
+<!-- Real-Time Micro Sub-Stats Footer -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-space-sm pt-space-xs"><div class="bg-surface-container-lowest p-space-sm rounded-lg flex flex-col gap-0.5"><span class="text-[11px] text-on-surface-variant font-medium">Mesh Status</span><span class="text-[14px] font-semibold text-primary" id="tile-mesh">Offline</span></div><div class="bg-surface-container-lowest p-space-sm rounded-lg flex flex-col gap-0.5"><span class="text-[11px] text-on-surface-variant font-medium">Temperature</span><span class="text-[14px] font-semibold text-tertiary" id="tile-temp">--</span></div><div class="bg-surface-container-lowest p-space-sm rounded-lg flex flex-col gap-0.5"><span class="text-[11px] text-on-surface-variant font-medium">Gas Status</span><span class="text-[14px] font-semibold text-tertiary-container" id="tile-gas">--</span></div><div class="bg-surface-container-lowest p-space-sm rounded-lg flex flex-col gap-0.5"><span class="text-[11px] text-on-surface-variant font-medium">Ventilation</span><span class="text-[14px] font-semibold text-secondary" id="tile-vent">Standby</span></div></div>
+</div>
+<!-- Tactile Actuator & Smart Controls Section -->
+<div id="controls" class="scroll-mt-20 bg-surface-container/70 backdrop-blur-xl rounded-xl p-space-lg shadow-xl flex flex-col gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Actuator Relays &amp; Manual Overrides</h3>
+
+</div>
+
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+<!-- Smart Light Switch Toggle Pill -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex items-center justify-between shadow-md transition-all duration-300" id="card-light-toggle">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shadow-[0_0_16px_rgba(245,158,11,0.4)] transition-all" id="icon-light-box">
+<span class="material-symbols-outlined text-[26px]">light</span>
+</div>
+<div>
+<div class="font-headline-sm text-[16px] text-on-surface font-semibold">Living Room Light</div>
+<div class="font-label-code text-label-code text-amber-300" id="light-status-text">RELAY 1</div>
+</div>
+</div>
+<!-- Interactive Switch -->
+<button class="relative w-14 h-8 rounded-full bg-primary-container p-1 transition-colors duration-300 cursor-pointer focus:outline-none shadow-[0_0_12px_rgba(0,240,255,0.4)]" id="toggle-light-btn">
+<div class="w-6 h-6 rounded-full bg-on-primary-container shadow-md transform translate-x-6 transition-transform duration-300" id="toggle-light-thumb"></div>
+</button>
+</div>
+<!-- Smart Fan Switch Toggle Pill -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex items-center justify-between shadow-md transition-all duration-300" id="card-fan-toggle">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-secondary-fixed/20 text-secondary flex items-center justify-center shadow-[0_0_16px_rgba(76,215,246,0.3)] transition-all" id="icon-fan-box">
+<span class="material-symbols-outlined text-[26px] animate-[spin_2s_linear_infinite]">mode_fan</span>
+</div>
+<div>
+<div class="font-headline-sm text-[16px] text-on-surface font-semibold">Ceiling Fan Motor</div>
+<div class="font-label-code text-label-code text-secondary" id="fan-status-text">RELAY 2</div>
+</div>
+</div>
+<!-- Interactive Switch -->
+<button class="relative w-14 h-8 rounded-full bg-primary-container p-1 transition-colors duration-300 cursor-pointer focus:outline-none shadow-[0_0_12px_rgba(0,240,255,0.4)]" id="toggle-fan-btn">
+<div class="w-6 h-6 rounded-full bg-on-primary-container shadow-md transform translate-x-6 transition-transform duration-300" id="toggle-fan-thumb"></div>
+</button>
+</div>
+</div>
+<!-- Quick Scenario Actuator Presets -->
+<div class="flex flex-wrap items-center gap-space-sm pt-space-xs">
+<span class="font-label-code text-label-code text-on-surface-variant uppercase mr-space-xs">Presets:</span>
+<button class="px-space-md py-space-xs rounded-lg bg-surface-container hover:bg-surface-bright font-label-code text-label-code text-on-surface flex items-center gap-space-xs transition-colors" onclick="triggerPreset('away')">
+<span class="material-symbols-outlined text-[16px] text-secondary">meeting_room</span>
+<span class="">Away Mode</span>
+</button>
+
+<button class="px-space-md py-space-xs rounded-lg bg-error-container/40 hover:bg-error-container text-error hover:text-on-error-container font-label-code text-label-code flex items-center gap-space-xs transition-colors ml-auto" onclick="triggerPreset('purge')">
+<span class="material-symbols-outlined text-[16px]">cyclone</span>
+<span class="">Max Ventilation (Purge)</span>
+</button>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: Sensor Telemetry Grid & Threshold Sliders (5 cols on desktop) -->
+<div class="xl:col-span-5 flex flex-col gap-space-lg">
+<!-- Live Telemetry Card Grid (2x3 Layout) -->
+<div id="sensors" class="scroll-mt-20 bg-surface-container/70 backdrop-blur-xl rounded-xl p-space-lg shadow-xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">sensors</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Sensor Array Metrics</h3>
+</div>
+<span class="font-label-code text-label-code text-tertiary-fixed-dim uppercase bg-surface-container-high px-space-xs py-0.5 rounded">6 SENSORS</span>
+</div>
+<!-- 2x3 Sub-cards Matrix -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md"><div class="bg-surface-container-low p-space-md rounded-xl shadow-md flex flex-col justify-between h-32"><div class="flex items-center justify-between"><div class="flex items-center gap-space-xs text-error"><span class="material-symbols-outlined text-[20px]">thermostat</span><span class="font-medium text-body-md">Temperature</span></div><span id="badge-temp" class="text-[11px] text-error font-medium px-2 py-0.5 rounded-full bg-error-container/30">--</span></div><div class="flex items-baseline gap-space-xs my-auto"><span class="text-[32px] font-semibold tracking-tight text-primary" id="val-temp">34.5</span><span class="text-[14px] text-on-surface-variant font-medium">°C</span></div><div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden"><div class="bg-gradient-to-r from-secondary via-amber-400 to-error h-full rounded-full" id="bar-temp" style="width: 0%;"></div></div></div><div class="bg-surface-container-low p-space-md rounded-xl shadow-md flex flex-col justify-between h-32"><div class="flex items-center justify-between"><div class="flex items-center gap-space-xs text-secondary"><span class="material-symbols-outlined text-[20px]">water_drop</span><span class="font-medium text-body-md">Humidity</span></div><span class="text-[11px] text-tertiary font-medium px-2 py-0.5 rounded-full bg-surface-container-highest" id="badge-hum">--</span></div><div class="flex items-baseline gap-space-xs my-auto"><span class="text-[32px] font-semibold tracking-tight text-secondary" id="val-humidity">61.7</span><span class="text-[14px] text-on-surface-variant font-medium">%</span></div><div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden"><div class="bg-secondary h-full rounded-full" id="bar-hum" style="width: 0%;"></div></div></div><div class="bg-surface-container-low p-space-md rounded-xl shadow-md flex flex-col justify-between h-32"><div class="flex items-center justify-between"><div class="flex items-center gap-space-xs text-tertiary-fixed-dim"><span class="material-symbols-outlined text-[20px]">air</span><span class="font-medium text-body-md">Gas &amp; Air</span></div><span class="text-[11px] text-tertiary font-medium px-2 py-0.5 rounded-full bg-surface-container-highest" id="badge-gas">--</span></div><div class="flex items-baseline gap-space-xs my-auto"><span class="text-[32px] font-semibold tracking-tight text-tertiary" id="val-gas">239</span><span class="text-[14px] text-on-surface-variant font-medium">RAW</span></div><div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden"><div class="bg-tertiary-fixed-dim h-full rounded-full" id="bar-gas" style="width: 0%;"></div></div></div><div class="bg-surface-container-low p-space-md rounded-xl shadow-md flex flex-col justify-between h-32"><div class="flex items-center justify-between"><div class="flex items-center gap-space-xs text-amber-300"><span class="material-symbols-outlined text-[20px]">wb_sunny</span><span class="font-medium text-body-md">Illuminance</span></div><span class="text-[11px] text-amber-300 font-medium px-2 py-0.5 rounded-full bg-amber-400/20" id="badge-lux-state">--</span></div><div class="flex items-baseline gap-space-xs my-auto"><span class="text-[32px] font-semibold tracking-tight text-on-surface" id="val-lux">840</span><span class="text-[14px] text-on-surface-variant font-medium">RAW</span></div><div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden"><div class="bg-amber-400 h-full rounded-full transition-all duration-300" id="lux-progress-bar" style="width: 0%;"></div></div></div><div class="bg-surface-container-low p-space-md rounded-xl shadow-md flex flex-col justify-between h-32"><div class="flex items-center justify-between"><div class="flex items-center gap-space-xs text-primary-fixed-dim"><span class="material-symbols-outlined text-[20px]">motion_photos_on</span><span class="font-medium text-body-md">Motion</span></div><div id="motion-dot" class="w-2 h-2 rounded-full bg-primary animate-ping"></div></div><div class="my-auto"><div class="text-[20px] text-primary font-semibold flex items-center gap-space-xs" id="motion-state-label">--</div><div id="motion-sub" class="text-[12px] text-on-surface-variant mt-0.5">--</div></div></div><div class="bg-surface-container-low p-space-md rounded-xl shadow-md flex flex-col justify-between h-32"><div class="flex items-center justify-between"><div class="flex items-center gap-space-xs text-secondary-fixed"><span class="material-symbols-outlined text-[20px]">graphic_eq</span><span class="font-medium text-body-md">Vibration</span></div><span class="text-[11px] text-on-surface-variant font-medium px-2 py-0.5 rounded-full bg-surface-container-highest" id="badge-vib">--</span></div><div class="my-auto flex items-center justify-between"><div><div id="vib-label" class="text-[20px] text-secondary-fixed font-semibold">--</div><div id="vib-sub" class="text-[12px] text-on-surface-variant">--</div></div><svg class="w-16 h-8 text-secondary-fixed opacity-70" fill="none" viewBox="0 0 80 32"><path d="M 0,16 Q 10,12 20,16 T 40,16 T 60,16 T 80,16" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path></svg></div></div></div>
+</div>
+<!-- Safety Threshold Calibration Controls -->
+<div class="bg-surface-container/70 backdrop-blur-xl rounded-xl p-space-lg shadow-xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">tune</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Auto-Safety Triggers</h3><span class="text-[11px] text-on-surface-variant">Alerts on this dashboard only</span>
+</div>
+
+</div>
+<div class="flex flex-col gap-space-md">
+<!-- Temperature Trigger Slider -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between font-label-code text-label-code">
+<span class="text-on-surface">Thermal Vent Cutoff:</span>
+<span class="text-error font-medium" id="disp-temp-thresh">46°C</span>
+</div>
+<input class="w-full accent-primary-container bg-surface-container-high h-2 rounded-lg cursor-pointer" id="slider-temp-thresh" max="65" min="30" type="range" value="46">
+
+</div>
+<!-- Gas Alert Safety Threshold -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between font-label-code text-label-code">
+<span class="text-on-surface">Gas Interlock Safety Threshold:</span>
+<span class="text-tertiary-fixed-dim font-medium" id="disp-gas-thresh">2300 PPM</span>
+</div>
+<input class="w-full accent-tertiary-container bg-surface-container-high h-2 rounded-lg cursor-pointer" id="slider-gas-thresh" max="4000" min="500" step="50" type="range" value="2300">
+
+</div>
+<!-- Lux Ambient Activation Slider -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between font-label-code text-label-code">
+<span class="text-on-surface">Auto-Night Dim Threshold:</span>
+<span class="text-amber-300 font-medium" id="disp-lux-thresh">3000 LUX</span>
+</div>
+<input class="w-full accent-secondary bg-surface-container-high h-2 rounded-lg cursor-pointer" id="slider-lux-thresh" max="5000" min="500" step="100" type="range" value="3000">
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Telemetry Deep Analytics Multi-Series Chrono Chart -->
+<div id="telemetry" class="scroll-mt-20 w-full bg-surface-container/70 backdrop-blur-xl rounded-xl p-space-lg shadow-xl flex flex-col gap-space-md">
+<!-- Graph Header & Timeline Zoom Filters -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md border-b border-surface-container-highest/60 pb-space-sm">
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[22px]">show_chart</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">ESP32 High-Resolution Telemetry Stream</h3>
+</div>
+
+</div>
+<div class="flex flex-wrap items-center gap-space-sm">
+<!-- Time Interval Pills -->
+<div class="flex items-center rounded-lg bg-surface-container-high p-0.5">
+<button data-win="1" class="px-space-sm py-1 rounded font-label-code text-label-code bg-primary-container text-on-primary-container font-semibold">1H LIVE</button>
+<button data-win="6" class="px-space-sm py-1 rounded font-label-code text-label-code text-on-surface-variant hover:text-on-surface transition-colors">6H</button>
+<button data-win="24" class="px-space-sm py-1 rounded font-label-code text-label-code text-on-surface-variant hover:text-on-surface transition-colors">24H</button>
+<button data-win="168" class="px-space-sm py-1 rounded font-label-code text-label-code text-on-surface-variant hover:text-on-surface transition-colors">7D</button>
+</div>
+<!-- Series Legend & Status -->
+<div class="flex items-center gap-space-md text-label-code font-label-code px-space-sm">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-error"></span>
+<span class="text-on-surface">Temp (°C)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+<span class="text-on-surface">Humidity (%RH)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary-fixed-dim"></span>
+<span class="text-on-surface">Gas (PPM)</span>
+</div>
+</div>
+<!-- Export CSV Pill Button -->
+<button class="px-space-md py-1 rounded-lg bg-surface-container hover:bg-surface-bright text-primary font-label-code text-label-code flex items-center gap-1 shadow-sm transition-colors" onclick="exportCsv()">
+<span class="material-symbols-outlined text-[16px]">download</span>
+<span class="">CSV Export</span>
+</button>
+</div>
+</div>
+<!-- Rich Vector Multi-Series SVG Chart -->
+<div id="chart-box" class="relative w-full h-72 bg-surface-container-lowest rounded-xl p-space-md overflow-hidden flex flex-col justify-between">
+<!-- Y-Axis Grid Guidelines & Unit Labels -->
+<div id="ylabels" class="absolute inset-0 flex flex-col justify-between p-space-md pointer-events-none opacity-20"></div>
+<svg id="chart-svg" class="absolute inset-0 w-full h-full p-space-md overflow-visible" preserveAspectRatio="none" viewBox="0 0 1000 240"></svg>
+<!-- Simulated Active Cursor Hover Scrub Overlay -->
+<div id="scrub" class="hidden absolute top-6 bottom-8 left-[85%] w-px bg-primary/70 pointer-events-none flex flex-col justify-start items-center">
+<div id="scrub-tip" class="px-2 py-1 rounded bg-surface-container-highest/95 backdrop-blur-md text-[10px] font-label-code text-on-surface shadow-xl -mt-4 border border-outline-variant/30 whitespace-nowrap"><span id="scrub-txt"></span></div>
+</div>
+<!-- X-Axis Timestamps -->
+<div id="xlabels" class="relative z-10 flex items-center justify-between text-[11px] font-label-code text-on-surface-variant pt-2 mt-auto"></div>
+</div>
+<!-- Telemetry Anomaly Event Log Strip -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pt-space-xs font-label-code text-[11px] text-on-surface-variant"><div class="flex items-center gap-space-xs text-[12px] text-on-surface-variant"><span class="material-symbols-outlined text-[16px] text-tertiary-fixed-dim">verified</span><span id="status-msg">Waiting for data</span></div><div class="flex items-center gap-space-md text-[12px] text-on-surface-variant"><span class="">Status: <strong id="status-conn" class="text-tertiary font-medium">--</strong></span></div></div>
+</div>
+</div>
+</div>
+<!-- Inline JavaScript Logic for Micro-Interactions -->
+</main><footer class="w-full bg-surface-container-lowest py-space-lg"><div class="w-full px-margin-lg flex flex-col sm:flex-row items-center justify-between gap-space-md text-on-surface-variant font-label-code text-label-code"><div class="flex items-center gap-space-sm"><span>PROTOCOL: HTTP // LAN</span><span class="text-outline-variant">•</span><span id="foot-host">HOST</span></div><div class="flex items-center gap-space-md"><span id="foot-update" class="text-on-surface-variant">LAST UPDATE --</span><span class="text-on-surface-variant">© 2026 ARIA</span></div></div></footer><nav id="nav-bottom" class="lg:hidden fixed bottom-0 inset-x-0 z-50 grid grid-cols-4 bg-surface/90 backdrop-blur-xl border-t border-outline-variant/30"><a href="#overview" data-sec="overview" class="flex flex-col items-center gap-0.5 py-2 text-[11px] font-label-code text-on-surface-variant transition-colors"><span class="material-symbols-outlined text-[22px]">dashboard</span>Overview</a><a href="#sensors" data-sec="sensors" class="flex flex-col items-center gap-0.5 py-2 text-[11px] font-label-code text-on-surface-variant transition-colors"><span class="material-symbols-outlined text-[22px]">sensors</span>Sensors</a><a href="#controls" data-sec="controls" class="flex flex-col items-center gap-0.5 py-2 text-[11px] font-label-code text-on-surface-variant transition-colors"><span class="material-symbols-outlined text-[22px]">toggle_on</span>Controls</a><a href="#telemetry" data-sec="telemetry" class="flex flex-col items-center gap-0.5 py-2 text-[11px] font-label-code text-on-surface-variant transition-colors"><span class="material-symbols-outlined text-[22px]">show_chart</span>Telemetry</a></nav></div>
+<script src="app.js"></script></body></html>

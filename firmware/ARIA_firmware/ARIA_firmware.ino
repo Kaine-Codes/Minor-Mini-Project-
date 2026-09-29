@@ -38,17 +38,22 @@
 #define MOTOR_ENA     32     // L298N ENA (PWM speed, tie HIGH or PWM)
 
 // ---------------- CONFIG ----------------
-// LAPTOP HOTSPOT MODE: The ESP32 connects directly to the laptop's
-// Windows Mobile Hotspot. The gateway IP is always 192.168.137.1.
 const char* WIFI_SSID         = "THESHINEMACHINE 3140";
 const char* WIFI_PASSWORD     = "1P3697{q";
-const char* SERVER_HOSTNAME   = "192.168.137.1";
-const int   SERVER_PORT       = 5000;
+
+// Fallback IP — used only when mDNS resolution of "aria" fails.
+// 192.168.137.1 is the default gateway for Windows Mobile Hotspot.
+const char* FALLBACK_SERVER_IP = "192.168.137.1";
+const int   SERVER_PORT        = 5000;
+
 const unsigned long POST_INTERVAL_MS   = 5000;   // send readings every 5s
 const unsigned long COMMAND_POLL_MS    = 3000;   // check for overrides every 3s
 const float GAS_SAFETY_THRESHOLD       = 1800.0; // raw ADC value - CALIBRATE THIS
 
 DHT dht(DHTPIN, DHTTYPE);
+
+// Resolved server IP — filled once during setup via mDNS or fallback
+String resolvedServerIP = "";
 
 unsigned long lastPostTime = 0;
 unsigned long lastCommandPoll = 0;
@@ -58,6 +63,26 @@ float lastHum = -1;
 bool latchedVibration = false;
 bool latchedMotion = false;
 bool localGasOverrideActive = false;
+
+// ---------------- mDNS SERVER DISCOVERY ----------------
+// Tries to resolve "aria.local" so the ESP32 can find the backend
+// on ANY network without a hardcoded IP. Falls back to the known
+// Windows Mobile Hotspot gateway if mDNS doesn't work (some mobile
+// hotspots block multicast traffic).
+void resolveServer() {
+  Serial.println("Resolving backend via mDNS (aria.local)...");
+  IPAddress serverIP = MDNS.queryHost("aria", 5000);  // 5-second timeout
+
+  if (serverIP != IPAddress(0, 0, 0, 0)) {
+    resolvedServerIP = serverIP.toString();
+    Serial.print("mDNS resolved aria.local -> ");
+    Serial.println(resolvedServerIP);
+  } else {
+    resolvedServerIP = String(FALLBACK_SERVER_IP);
+    Serial.print("mDNS failed, using fallback IP -> ");
+    Serial.println(resolvedServerIP);
+  }
+}
 
 // ---------------- SETUP ----------------
 void setup() {
@@ -75,9 +100,13 @@ void setup() {
 
   dht.begin();
 
-  // ---- Connect to laptop's Mobile Hotspot ----
+  // ---- Connect to WiFi ----
   Serial.print("Connecting to ");
   Serial.println(WIFI_SSID);
+  
+  // LOWER WIFI POWER TO PREVENT BROWNOUT REBOOTS ON EXTERNAL POWER
+  WiFi.setTxPower(WIFI_POWER_8_5dBm); 
+  
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   int retries = 0;
@@ -97,10 +126,12 @@ void setup() {
   Serial.print("Connected to WiFi. IP: ");
   Serial.println(WiFi.localIP());
 
-  // ---- mDNS: so we can find the backend at aria.local ----
+  // ---- mDNS: register this node and discover the backend ----
   if (!MDNS.begin("aria-node")) {
     Serial.println("mDNS responder failed to start (non-fatal)");
   }
+
+  resolveServer();
 
   Serial.println("MQ-135 warming up (~60s recommended before trusting readings)");
 }
@@ -111,6 +142,9 @@ void loop() {
     Serial.println("WiFi lost, attempting reconnect...");
     WiFi.reconnect();
     delay(2000);
+    if (WiFi.status() == WL_CONNECTED) {
+      resolveServer();  // re-discover backend after reconnect
+    }
     return;
   }
 
@@ -131,21 +165,28 @@ void loop() {
   }
 
   // Read analog sensors for safety loop
-  int   gasRaw        = analogRead(MQ135_PIN);
-  int   lightRaw       = analogRead(LDR_PIN);
+  int gasRaw = analogRead(MQ135_PIN);
+  
+  // The user's LDR circuit is pulling the voltage down when exposed to light.
+  // We invert the 12-bit ADC value (0-4095) in software so that:
+  // Dark = 0, Bright = 4095.
+  int lightRaw = 4095 - analogRead(LDR_PIN);
 
   // ---------------------------------------------------------
   // EDGE-FIRST SAFETY LOGIC
   // This does NOT wait for the server. If gas exceeds a safe
   // threshold, the fan is triggered locally and immediately.
   // ---------------------------------------------------------
-  if (gasRaw > GAS_SAFETY_THRESHOLD) {
+  // Important: MQ-135 reads artificially HIGH during its first 60 seconds
+  // of heating up. We MUST ignore it during this time, otherwise the motor
+  // turns on instantly at boot, draws huge stall current, and restarts the ESP32!
+  if (millis() > 60000 && gasRaw > GAS_SAFETY_THRESHOLD) {
     if (!localGasOverrideActive) {
       Serial.println("!! GAS THRESHOLD EXCEEDED - local override: fan ON !!");
       motorForward();
       localGasOverrideActive = true;
     }
-  } else if (localGasOverrideActive) {
+  } else if (localGasOverrideActive && gasRaw <= GAS_SAFETY_THRESHOLD) {
     // Only release the local override once levels drop back down.
     Serial.println("Gas levels normalized - releasing local override");
     motorStop();
@@ -194,7 +235,7 @@ void setLED(bool on) {
 
 // ---------------- NETWORKING ----------------
 String serverBaseUrl() {
-  return "http://" + String(SERVER_HOSTNAME) + ":" + String(SERVER_PORT);
+  return "http://" + resolvedServerIP + ":" + String(SERVER_PORT);
 }
 
 void postReadings(float temperature, float humidity, int gasRaw, int lightRaw, bool motion, bool vibration) {

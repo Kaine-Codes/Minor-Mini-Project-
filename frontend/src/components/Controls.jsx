@@ -7,17 +7,38 @@ export default function Controls({ led, fan, onToggleLed, onToggleFan, sending, 
         the ESP32 and will not respond to remote commands.
       </p>
       <div className="controls-row">
-        <button className={led ? 'toggle on' : 'toggle'} onClick={onToggleLed} disabled={sending}>
-          Light: {led ? 'ON' : 'OFF'}
-        </button>
-        <button
-          className={fan ? 'toggle on' : 'toggle'}
-          onClick={onToggleFan}
-          disabled={sending || gasOverrideActive}
-          title={gasOverrideActive ? 'Locked on by the local gas safety override' : undefined}
+        <div
+          className={`toggle-switch ${sending ? 'disabled' : ''}`}
+          onClick={!sending ? onToggleLed : undefined}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === 'Enter' && !sending && onToggleLed()}
         >
-          Fan: {fan ? 'ON' : 'OFF'}{gasOverrideActive ? ' (locked)' : ''}
-        </button>
+          <div className={`toggle-track ${led ? 'on' : ''}`}>
+            <div className="toggle-knob" />
+          </div>
+          <span className="toggle-label">
+            💡 Light
+            <small>{led ? 'ON' : 'OFF'}</small>
+          </span>
+        </div>
+
+        <div
+          className={`toggle-switch ${sending || gasOverrideActive ? 'disabled' : ''}`}
+          onClick={!(sending || gasOverrideActive) ? onToggleFan : undefined}
+          role="button"
+          tabIndex={0}
+          title={gasOverrideActive ? 'Locked on by the local gas safety override' : undefined}
+          onKeyDown={(e) => e.key === 'Enter' && !(sending || gasOverrideActive) && onToggleFan()}
+        >
+          <div className={`toggle-track ${fan ? 'on' : ''}`}>
+            <div className="toggle-knob" />
+          </div>
+          <span className="toggle-label">
+            🌀 Fan
+            <small>{fan ? 'ON' : 'OFF'}{gasOverrideActive ? ' (locked)' : ''}</small>
+          </span>
+        </div>
       </div>
     </div>
   )

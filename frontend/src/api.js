@@ -9,17 +9,36 @@
 // (`npm run dev`) separately from Flask during frontend development.
 export const API_BASE = import.meta.env.VITE_API_BASE || "";
 
-async function request(path, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    credentials: "include", // sends session cookie for auth
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `Request failed: ${res.status}`);
+// Retry wrapper — Tailscale over mobile networks can drop packets,
+// so we retry up to MAX_RETRIES times with a small delay between each.
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1500;
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function request(path, options = {}, retriesLeft = MAX_RETRIES) {
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      credentials: "include", // sends session cookie for auth
+      headers: { "Content-Type": "application/json" },
+      ...options,
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `Request failed: ${res.status}`);
+    }
+    return res.json();
+  } catch (err) {
+    // Only retry on network errors (failed to fetch), not on server errors (4xx/5xx)
+    if (retriesLeft > 0 && err.message === "Failed to fetch") {
+      console.warn(`[ARIA] Retrying ${path} (${retriesLeft} left)...`);
+      await wait(RETRY_DELAY_MS);
+      return request(path, options, retriesLeft - 1);
+    }
+    throw err;
   }
-  return res.json();
 }
 
 export const login = (username, password) =>
