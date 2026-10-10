@@ -1,6 +1,6 @@
 # ARIA — Adaptive Room Intelligence & Automation
 
-![ARIA Dashboard](assets/dashboard.jpg)
+![ARIA Dashboard](assets/dashboard.png)
 
 **ARIA** is a full-stack IoT home/room automation system. It monitors environmental conditions (temperature, humidity, air quality, motion, light) via an ESP32-based sensor node, and allows automation and remote control of actuators (LED, fan) through a locally-hosted web dashboard.
 
