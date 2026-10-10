@@ -38,8 +38,8 @@
 #define MOTOR_ENA     32     // L298N ENA (PWM speed, tie HIGH or PWM)
 
 // ---------------- CONFIG ----------------
-const char* WIFI_SSID         = "THESHINEMACHINE 3140";
-const char* WIFI_PASSWORD     = "1P3697{q";
+const char* WIFI_SSID         = "YOUR_WIFI_SSID";
+const char* WIFI_PASSWORD     = "YOUR_WIFI_PASSWORD";
 
 // Fallback IP — used only when mDNS resolution of "aria" fails.
 // 192.168.137.1 is the default gateway for Windows Mobile Hotspot.
